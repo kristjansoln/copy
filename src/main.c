@@ -32,27 +32,32 @@ int main(int argc, char **argv) {
     file_src = open(argv[1], O_RDONLY);
     if (file_src == -1) {  // If source file can't be opened (read)
         printf("Invalid source file\n");
-        return 1;
+        return 2;
     }
 
 
-    // Try to create destination file, in mode 
+    // Try to create destination file, in mode
     file_dest = creat(argv[2], 0644); // rw-r--r--
     if (file_dest == -1) {  // If destination file cannot be created
         printf("Invalid destination file\n");
-        return 1;
+        return 3;
     }
 
     // Check if block size is given in arguments
     if(argc == 4) {
-        sscanf(argv[3], "%ld", &block_size);  // TODO: make this safer
+        sscanf(argv[3], "%ld", &block_size);
+        // Check if the input is valid
+        if(block_size <= 0) {
+            printf("Invalid block_size argument, using default value\n");
+            block_size = BLCK_SIZE_DEFAULT;
+        }
     }
     else block_size = BLCK_SIZE_DEFAULT;
 
     // Try to allocate memory
     if((buff = malloc(block_size)) == NULL) {
         printf("Error during memory allocation");
-        return 2;
+        return 5;
     }
 
     // Copy the files
@@ -61,20 +66,20 @@ int main(int argc, char **argv) {
         // On error, read returns -1
         if (num_bytes_read == -1) {
             printf("Error during read\n");
-            return 3;
+            return 6;
         }
         // Try to write to destination file. Write returns number of bytes written.
         num_bytes_written = write(file_dest, buff, num_bytes_read);
         if(num_bytes_written != num_bytes_read) {
             printf("Error during write\n");
-            return 4;
+            return 7;
         }
     }
 
     // Close the files
     if(close(file_src) == -1 || close(file_dest) == -1) {
         printf("Error during closing the files\n");
-        return 5;
+        return 8;
     }
 
     return 0;
